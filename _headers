@@ -1,0 +1,3 @@
+# Cloudflare Pages：让 config.json 允许被 dmup 等其他域名读取
+/config.json
+  Access-Control-Allow-Origin: *

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>老八影视 / 老八动漫 · 下载与更新</title>
+<style>
+:root{--bg:#0a0c10;--card:#12161d;--card2:#191e27;--line:rgba(255,255,255,.075);--tx:#f2f5f9;--tx2:#8b94a3;--tx3:#5c6575;--ac:#ff5c33}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(110% 70% at 20% 0%,#181f2c 0%,#0a0c10 58%);color:var(--tx);min-height:100vh;
+font:14px/1.7 -apple-system,"PingFang SC","Noto Sans CJK SC",sans-serif;padding:34px 16px 70px}
+.wrap{max-width:740px;margin:0 auto}
+.logo{display:flex;align-items:center;gap:10px}
+.dot{width:11px;height:11px;border-radius:3px;background:linear-gradient(135deg,#ff7a3d,#ff3d2e)}
+h1{font-size:23px;font-weight:800;letter-spacing:.4px}
+.sub{color:var(--tx2);font-size:12.5px;margin-top:6px}
+.tabs{display:flex;gap:8px;margin-top:24px}
+.tab{padding:9px 18px;border-radius:11px;background:var(--card);border:1px solid var(--line);color:var(--tx2);cursor:pointer;font-size:13.5px;transition:.15s}
+.tab.on{background:rgba(255,92,51,.14);border-color:rgba(255,92,51,.45);color:#ffb199}
+.notice{display:none;margin-top:18px;padding:16px 18px;border-radius:14px;background:rgba(255,92,51,.08);border:1px solid rgba(255,92,51,.28)}
+.notice b{display:block;font-size:14px;margin-bottom:6px;color:#ffb199}
+.notice p{color:var(--tx2);font-size:13px;white-space:pre-wrap}
+.hero{margin-top:18px;padding:22px;border-radius:18px;background:linear-gradient(160deg,#1b2230,#12161d 65%);border:1px solid var(--line)}
+.hero .kicker{font-size:11.5px;color:#ff8a6b;letter-spacing:1px}
+.hero .big{font-size:26px;font-weight:800;margin-top:6px}
+.hero .meta{color:var(--tx2);font-size:12.5px;margin-top:8px}
+.hero .acts{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.dl{display:inline-flex;align-items:center;gap:8px;text-decoration:none;background:linear-gradient(135deg,#ff7a3d,#ff3d2e);
+color:#fff;font-weight:650;padding:12px 24px;border-radius:12px;font-size:14px;box-shadow:0 10px 24px rgba(255,92,51,.22)}
+.dl:active{transform:translateY(1px)}
+.copy{background:var(--card2);border:1px solid var(--line);color:var(--tx2);border-radius:10px;padding:11px 15px;font-size:12.5px;cursor:pointer}
+.tag{font-size:11px;padding:2px 9px;border-radius:20px;background:rgba(255,92,51,.16);color:#ff8a6b}
+.tag.opt{background:rgba(120,160,255,.14);color:#9fb6ff}
+.notes{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);color:var(--tx2);font-size:13px;white-space:pre-wrap;line-height:1.85}
+.hist{margin-top:22px}
+.hist h3{font-size:13px;color:var(--tx3);font-weight:400;letter-spacing:.5px}
+.hrow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);font-size:13px}
+.hrow .n{font-weight:600;min-width:56px}
+.hrow .d{color:var(--tx3);font-size:11.5px;flex:1}
+.hrow a{color:#ffb199;text-decoration:none;font-size:12.5px}
+.empty{margin-top:26px;text-align:center;color:var(--tx2);padding:36px 0;font-size:13px}
+.foot{margin-top:34px;color:var(--tx3);font-size:11.5px;text-align:center;line-height:2}
+.foot b{color:var(--tx2);font-weight:400}
+</style>
+</head>
+<body><div class="wrap">
+  <div class="logo"><span class="dot"></span><h1 id="appName">老八影视</h1></div>
+  <p class="sub">安装包下载与更新说明 · 官方发布页</p>
+
+  <div class="tabs">
+    <div class="tab on" data-a="tv">老八影视</div>
+    <div class="tab" data-a="anime">老八动漫</div>
+  </div>
+
+  <div class="notice" id="notice"><b id="nTitle"></b><p id="nBody"></p></div>
+  <div id="content"></div>
+
+  <div class="foot">
+    安装前请在系统设置里允许「安装未知来源应用」<br>
+    如提示签名冲突，请先卸载旧版本再安装 · <b>Android 7.0 及以上</b>
+  </div>
+</div>
+
+<script>
+var CUR = 'tv';
+var CFG_URL = 'https://dmadmin.5204219.xyz/config.json';
+var NAME = { tv: '老八影视', anime: '老八动漫' };
+var $ = function (id) { return document.getElementById(id); };
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+  return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function nl(s) { return esc(s).replace(/\n/g, '<br>'); }
+
+function load() {
+  $('appName').textContent = NAME[CUR];
+  fetch(CFG_URL + '?t=' + Date.now(), { cache: 'no-store' })
+    .then(function (r) { return r.json(); })
+    .then(render)
+    .catch(function () {
+      $('content').innerHTML = '<div class="empty">公告数据加载失败<br>请稍后刷新，或检查 config.json 是否可访问</div>';
+    });
+}
+
+function render(cfg) {
+  var n = cfg.notice;
+  if (n && n.enabled !== 0 && n.title) {
+    $('notice').style.display = 'block';
+    $('nTitle').textContent = n.title;
+    $('nBody').innerHTML = nl(n.body || '');
+  } else {
+    $('notice').style.display = 'none';
+  }
+  var v = (cfg.versions || {})[CUR] || {};
+  if (!v.enabled || !v.ver_code || !v.url) {
+    $('content').innerHTML = '<div class="empty">这个应用还没有发布版本</div>';
+    return;
+  }
+  var tag = v.force ? '<span class="tag">强制更新</span>' : '<span class="tag opt">可选更新</span>';
+  $('content').innerHTML =
+    '<div class="hero">' +
+      '<div class="kicker">最新版本</div>' +
+      '<div class="big">' + esc(v.ver_name || '') + ' ' + tag + '</div>' +
+      '<div class="meta">版本号 ' + esc(v.ver_code) + (v.date ? ' · ' + esc(v.date) : '') + ' · 约 1.4MB</div>' +
+      '<div class="acts">' +
+        '<a class="dl" href="' + esc(v.url) + '" target="_blank" rel="noreferrer">⤓ 下载 ' + NAME[CUR] + '</a>' +
+        '<button class="copy" onclick="copyLink(\'' + esc(v.url) + '\')">复制下载链接</button>' +
+      '</div>' +
+      (v.notes ? '<div class="notes">' + nl(v.notes) + '</div>' : '') +
+    '</div>';
+}
+
+function copyLink(u) {
+  var done = function () { alert('链接已复制'); };
+  if (navigator.clipboard) navigator.clipboard.writeText(u).then(done).catch(done);
+  else { var t = document.createElement('textarea'); t.value = u; document.body.appendChild(t); t.select();
+    document.execCommand('copy'); t.remove(); done(); }
+}
+
+document.querySelectorAll('.tab').forEach(function (t) {
+  t.onclick = function () {
+    document.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); });
+    t.classList.add('on');
+    CUR = t.getAttribute('data-a');
+    load();
+  };
+});
+load();
+</script>
+</body>
+</html>
